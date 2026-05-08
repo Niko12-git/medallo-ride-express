@@ -23,6 +23,7 @@ function Index() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col">
       <AppHeader />
+      <NotificationsPrompt />
       <main className="flex-1 px-4 py-4 pb-28">
         {role === "cliente" ? <ClientView /> : <DriverView />}
       </main>
