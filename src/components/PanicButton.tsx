@@ -1,6 +1,7 @@
 import { useApp } from "@/lib/store";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { notify } from "@/lib/notifications";
 
 export function PanicButton() {
   const trigger = useApp((s) => s.triggerPanic);
