@@ -5,6 +5,7 @@ import { DriverView } from "@/components/DriverView";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { PanicButton } from "@/components/PanicButton";
+import { NotificationsPrompt } from "@/components/NotificationsPrompt";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
