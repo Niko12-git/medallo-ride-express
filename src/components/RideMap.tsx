@@ -44,6 +44,12 @@ export function RideMap({ origin, destination, className }: RideMapProps) {
   }, [origin, destination]);
 
   const ref = useRef<L.Map>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return <div className={(className ?? "h-full w-full") + " animate-pulse bg-secondary"} />;
+  }
 
   return (
     <MapContainer
