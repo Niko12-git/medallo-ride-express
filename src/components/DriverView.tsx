@@ -30,7 +30,16 @@ export function DriverView() {
 
   useEffect(() => {
     if (!online || currentRide || request) return;
-    const t = setTimeout(() => setRequest(generateRequest()), 3500);
+    const t = setTimeout(() => {
+      const r = generateRequest();
+      setRequest(r);
+      notify(
+        "info",
+        "Nueva solicitud de viaje",
+        `${r.origin.name} → ${r.destination.name} · ${formatCOP(r.price * 0.85)}`,
+        { tag: `req-${r.id}` },
+      );
+    }, 3500);
     return () => clearTimeout(t);
   }, [online, currentRide, request]);
 
@@ -40,6 +49,25 @@ export function DriverView() {
     setCurrentRide(accepted);
     setRequest(null);
     toast.success("Servicio aceptado", { description: "Dirígete al punto de recogida." });
+    notify(
+      "accepted",
+      "Servicio aceptado",
+      `Dirígete a ${accepted.origin.name}.`,
+      { tag: `ride-${accepted.id}` },
+    );
+  }
+
+  function complete() {
+    if (!currentRide) return;
+    pushHistory({ ...currentRide, status: "Completado" });
+    setCurrentRide(null);
+    toast.success("Viaje completado", { description: `Ganancia: ${formatCOP(currentRide.price * 0.85)}` });
+    notify(
+      "completed",
+      "Viaje completado ✅",
+      `Ganancia: ${formatCOP(currentRide.price * 0.85)}`,
+      { tag: `ride-${currentRide.id}` },
+    );
   }
 
   function complete() {
