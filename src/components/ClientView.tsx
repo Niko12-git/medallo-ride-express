@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { notify } from "@/lib/notifications";
 
 const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Efectivo", icon: Banknote, hint: "Paga al llegar" },
