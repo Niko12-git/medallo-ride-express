@@ -1,26 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useApp } from "@/lib/store";
+import { ClientView } from "@/components/ClientView";
+import { DriverView } from "@/components/DriverView";
+import { AppHeader } from "@/components/AppHeader";
+import { BottomNav } from "@/components/BottomNav";
+import { PanicButton } from "@/components/PanicButton";
+import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Medallo Express — Motorizado en Medellín" },
+      { name: "description", content: "Pide tu motorizado en Medellín en segundos. Tarifas justas, pago en Efectivo, Nequi o Bancolombia." },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Index() {
+  const role = useApp((s) => s.role);
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="mx-auto flex min-h-screen max-w-md flex-col">
+      <AppHeader />
+      <main className="flex-1 px-4 py-4 pb-28">
+        {role === "cliente" ? <ClientView /> : <DriverView />}
+      </main>
+      <PanicButton />
+      <BottomNav />
+      <Toaster theme="dark" position="top-center" richColors />
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
