@@ -70,12 +70,6 @@ export function DriverView() {
     );
   }
 
-  function complete() {
-    if (!currentRide) return;
-    pushHistory({ ...currentRide, status: "Completado" });
-    setCurrentRide(null);
-    toast.success("Viaje completado", { description: `Ganancia: ${formatCOP(currentRide.price * 0.85)}` });
-  }
 
   return (
     <div className="space-y-3">
