@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { notify } from "@/lib/notifications";
 
 const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Efectivo", icon: Banknote, hint: "Paga al llegar" },
@@ -25,13 +26,31 @@ export function ClientView() {
 
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") return;
-    const t = setTimeout(() => {
+    const tEnroute = setTimeout(() => {
+      notify(
+        "enroute",
+        "Tu motorizado va en camino",
+        `Carlos M. está cerca de ${currentRide.origin.name}.`,
+        { tag: `ride-${currentRide.id}` },
+      );
+      toast("Conductor en camino", { description: "Está muy cerca del punto de recogida." });
+    }, 3500);
+    const tDone = setTimeout(() => {
       const completed = { ...currentRide, status: "Completado" as const };
       pushHistory(completed);
       setCurrentRide(null);
       toast.success("Viaje completado", { description: "Gracias por viajar con Medallo Express." });
+      notify(
+        "completed",
+        "Viaje completado ✅",
+        `Llegaste a ${currentRide.destination.name}. Total: ${formatCOP(currentRide.price)}.`,
+        { tag: `ride-${currentRide.id}` },
+      );
     }, 8000);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(tEnroute);
+      clearTimeout(tDone);
+    };
   }, [currentRide, pushHistory, setCurrentRide]);
 
   function requestRide() {
@@ -53,6 +72,12 @@ export function ClientView() {
       toast.success("¡Conductor en camino!", {
         description: "Carlos M. · Honda CB 160 · Placa MED-23A",
       });
+      notify(
+        "accepted",
+        "Conductor aceptó tu viaje",
+        "Carlos M. · Honda CB 160 · MED-23A. Llega en ~3 min.",
+        { tag: `ride-${ride.id}` },
+      );
     }, 2200);
   }
 

@@ -5,6 +5,7 @@ import { DriverView } from "@/components/DriverView";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { PanicButton } from "@/components/PanicButton";
+import { NotificationsPrompt } from "@/components/NotificationsPrompt";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
@@ -22,6 +23,7 @@ function Index() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col">
       <AppHeader />
+      <NotificationsPrompt />
       <main className="flex-1 px-4 py-4 pb-28">
         {role === "cliente" ? <ClientView /> : <DriverView />}
       </main>
