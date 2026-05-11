@@ -160,7 +160,37 @@ export const PACKAGE_MULT: Record<PackageSize, number> = {
   "Grande": 1.25,
 };
 
-export function quote(origin: Place, destination: Place, opts?: { serviceType?: ServiceType; packageSize?: PackageSize }) {
+// Bounding box for the Medellín metropolitan area (Valle de Aburrá).
+// Anything outside is considered "long distance" and gets a 1.5x surcharge.
+// Anything outside the extended box is "out of coverage".
+export const METRO_BOUNDS = { latMin: 6.10, latMax: 6.40, lngMin: -75.70, lngMax: -75.45 };
+export const EXTENDED_BOUNDS = { latMin: 5.95, latMax: 6.55, lngMin: -75.85, lngMax: -75.30 };
+
+const inBounds = (p: Place, b: typeof METRO_BOUNDS) =>
+  p.lat >= b.latMin && p.lat <= b.latMax && p.lng >= b.lngMin && p.lng <= b.lngMax;
+
+export const isWithinMetro = (p: Place) => inBounds(p, METRO_BOUNDS);
+export const isWithinCoverage = (p: Place) => inBounds(p, EXTENDED_BOUNDS);
+
+export const RAIN_SURCHARGE = 1.15;
+export const LONG_DISTANCE_SURCHARGE = 1.5;
+
+export interface Quote {
+  distanceKm: number;
+  durationMin: number;
+  price: number;
+  surchargeZone: string | null;
+  longDistance: boolean;
+  outOfCoverage: boolean;
+  rainingApplied: boolean;
+  surcharges: string[];
+}
+
+export function quote(
+  origin: Place,
+  destination: Place,
+  opts?: { serviceType?: ServiceType; packageSize?: PackageSize; raining?: boolean },
+): Quote {
   // Haversine
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -174,19 +204,39 @@ export function quote(origin: Place, destination: Place, opts?: { serviceType?: 
   const base = 4500;
   const perKm = 1800;
   let price = base + perKm * distanceKm;
+  const surcharges: string[] = [];
+
   const mult = Math.max(SURCHARGE[origin.zone ?? ""] ?? 1, SURCHARGE[destination.zone ?? ""] ?? 1);
-  price = price * mult;
+  if (mult > 1) price = price * mult;
+
   if (opts?.serviceType === "Paquete") {
-    price = price * (PACKAGE_MULT[opts.packageSize ?? "Mediano"] ?? 1);
+    const pm = PACKAGE_MULT[opts.packageSize ?? "Mediano"] ?? 1;
+    price = price * pm;
+    if (pm !== 1) surcharges.push(`Paquete ${opts.packageSize}`);
   }
+
+  const longDistance = !isWithinMetro(origin) || !isWithinMetro(destination);
+  const outOfCoverage = !isWithinCoverage(origin) || !isWithinCoverage(destination);
+  if (longDistance) {
+    price = price * LONG_DISTANCE_SURCHARGE;
+    surcharges.push("Larga distancia +50%");
+  }
+
+  const rainingApplied = !!opts?.raining;
+  if (rainingApplied) {
+    price = price * RAIN_SURCHARGE;
+    surcharges.push("Lluvia +15%");
+  }
+
   price = Math.round(price / 500) * 500;
   const surchargeZone =
     (SURCHARGE[origin.zone ?? ""] ?? 0) > 1
-      ? origin.zone
+      ? origin.zone ?? null
       : (SURCHARGE[destination.zone ?? ""] ?? 0) > 1
-      ? destination.zone
+      ? destination.zone ?? null
       : null;
-  return { distanceKm, durationMin, price, surchargeZone };
+
+  return { distanceKm, durationMin, price, surchargeZone, longDistance, outOfCoverage, rainingApplied, surcharges };
 }
 
 export const formatCOP = (n: number) =>
