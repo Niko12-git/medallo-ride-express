@@ -12,7 +12,10 @@ function generateRequest(): Ride {
   const a = PLACES[Math.floor(Math.random() * PLACES.length)];
   let b = PLACES[Math.floor(Math.random() * PLACES.length)];
   while (b.name === a.name) b = PLACES[Math.floor(Math.random() * PLACES.length)];
-  const q = quote(a, b);
+  const isPackage = Math.random() < 0.4;
+  const sizes = ["Pequeño", "Mediano", "Grande"] as const;
+  const packageSize = isPackage ? sizes[Math.floor(Math.random() * 3)] : undefined;
+  const q = quote(a, b, isPackage ? { serviceType: "Paquete", packageSize } : undefined);
   return {
     id: crypto.randomUUID(),
     origin: a,
@@ -21,6 +24,8 @@ function generateRequest(): Ride {
     payment: ["Efectivo", "Nequi", "Bancolombia"][Math.floor(Math.random() * 3)] as any,
     status: "Pendiente",
     createdAt: Date.now(),
+    serviceType: isPackage ? "Paquete" : "Persona",
+    ...(isPackage ? { packageSize, packageNote: "Entregar en portería" } : {}),
   };
 }
 
