@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useApp, formatCOP } from "@/lib/store";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
-import { CheckCircle2, XCircle, MapPin, Package, UserRound } from "lucide-react";
+import { CheckCircle2, XCircle, MapPin, Package, UserRound, Star, CloudRain } from "lucide-react";
 
 export const Route = createFileRoute("/historial")({
   head: () => ({ meta: [{ title: "Historial — Medallo Express" }] }),
