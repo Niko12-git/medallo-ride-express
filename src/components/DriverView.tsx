@@ -127,8 +127,18 @@ export function DriverView() {
             <span className="rounded-full bg-neon px-2 py-0.5 text-[10px] font-bold uppercase text-neon-foreground">
               Nueva solicitud
             </span>
-            <span className="text-xs text-muted-foreground">{request.payment}</span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-neon">
+                {request.serviceType === "Paquete" ? <Package className="h-3 w-3" /> : <UserRound className="h-3 w-3" />}
+                {request.serviceType ?? "Persona"}
+                {request.serviceType === "Paquete" && request.packageSize ? ` · ${request.packageSize}` : ""}
+              </span>
+              <span className="text-xs text-muted-foreground">{request.payment}</span>
+            </div>
           </div>
+          {request.serviceType === "Paquete" && request.packageNote && (
+            <p className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground">{request.packageNote}</p>
+          )}
           <Route ride={request} />
           <div className="grid grid-cols-3 gap-2 text-center">
             <Pill icon={MapPin} label={`${request.distanceKm} km`} />
