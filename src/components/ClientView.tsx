@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useApp, quote, formatCOP, type PaymentMethod, type Place } from "@/lib/store";
+import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2 } from "lucide-react";
+import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2, UserRound, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
@@ -15,14 +16,23 @@ const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Bancolombia", icon: Building2, hint: "QR o transferencia" },
 ];
 
+const SIZE_OPTIONS: { id: PackageSize; hint: string }[] = [
+  { id: "Pequeño", hint: "Sobre / caja chica" },
+  { id: "Mediano", hint: "Hasta una mochila" },
+  { id: "Grande", hint: "Caja voluminosa" },
+];
+
 export function ClientView() {
   const { currentRide, setCurrentRide, pushHistory } = useApp();
   const [origin, setOrigin] = useState<Place | null>(null);
   const [destination, setDestination] = useState<Place | null>(null);
   const [payment, setPayment] = useState<PaymentMethod>("Nequi");
+  const [serviceType, setServiceType] = useState<ServiceType>("Persona");
+  const [packageSize, setPackageSize] = useState<PackageSize>("Mediano");
+  const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
 
-  const q = origin && destination ? quote(origin, destination) : null;
+  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize }) : null;
 
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") return;
