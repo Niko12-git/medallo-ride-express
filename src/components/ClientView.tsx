@@ -341,9 +341,14 @@ export function ClientView() {
 
           <Button
             onClick={requestRide}
-            className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95"
+            disabled={q.outOfCoverage}
+            className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95 disabled:opacity-50"
           >
-            {serviceType === "Paquete" ? "Solicitar envío" : "Solicitar motorizado"}
+            {q.outOfCoverage
+              ? "Fuera de cobertura"
+              : serviceType === "Paquete"
+              ? "Solicitar envío"
+              : "Solicitar motorizado"}
           </Button>
         </div>
       )}
