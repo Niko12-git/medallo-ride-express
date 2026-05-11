@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
+import { RatingModal } from "./RatingModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2, UserRound, Package } from "lucide-react";
+import {
+  Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2,
+  UserRound, Package, CloudRain, AlertTriangle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
