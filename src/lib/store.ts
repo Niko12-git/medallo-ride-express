@@ -141,6 +141,11 @@ export const PLACES: Place[] = [
   { name: "Centro Comercial El Tesoro", lat: 6.1972, lng: -75.5547, zone: "El Poblado" },
   { name: "Laureles, Primer Parque", lat: 6.2447, lng: -75.5915, zone: "Laureles" },
   { name: "Envigado Parque Principal", lat: 6.1697, lng: -75.5836, zone: "Envigado" },
+  { name: "Sabaneta Parque Principal", lat: 6.1517, lng: -75.6160, zone: "Sabaneta" },
+  { name: "Bello Parque Principal", lat: 6.3373, lng: -75.5582, zone: "Bello" },
+  { name: "Caldas Parque Principal", lat: 6.0911, lng: -75.6362, zone: "Caldas" },
+  { name: "Barbosa Parque Principal", lat: 6.4383, lng: -75.3320, zone: "Barbosa" },
+  { name: "Santa Fe de Antioquia", lat: 6.5569, lng: -75.8267, zone: "Occidente" },
 ];
 
 const SURCHARGE: Record<string, number> = {
