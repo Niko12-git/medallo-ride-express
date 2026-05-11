@@ -26,6 +26,16 @@ export interface Ride {
   serviceType?: ServiceType;
   packageSize?: PackageSize;
   packageNote?: string;
+  raining?: boolean;
+  longDistance?: boolean;
+  rating?: number;
+  comment?: string;
+}
+
+export interface DriverDocs {
+  photo: boolean;
+  plate: boolean;
+  soat: boolean;
 }
 
 export interface ChatMessage {
