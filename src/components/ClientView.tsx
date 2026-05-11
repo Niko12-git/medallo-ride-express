@@ -71,16 +71,26 @@ export function ClientView() {
 
   function requestRide() {
     if (!origin || !destination || !q) return;
+    if (q.outOfCoverage) {
+      toast.error("Zona fuera de cobertura", {
+        description: "Medallo Express opera en el Valle de Aburrá y municipios cercanos.",
+      });
+      return;
+    }
     setSearching(true);
     const ride = {
       id: crypto.randomUUID(),
       origin,
       destination,
-      ...q,
+      distanceKm: q.distanceKm,
+      durationMin: q.durationMin,
+      price: q.price,
       payment,
       status: "Pendiente" as const,
       createdAt: Date.now(),
       serviceType,
+      raining: q.rainingApplied,
+      longDistance: q.longDistance,
       ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
