@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
-import { RatingModal } from "./RatingModal";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
