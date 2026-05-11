@@ -161,9 +161,69 @@ export function ClientView() {
         <RideMap origin={origin} destination={destination} />
       </div>
 
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          { id: "Persona" as ServiceType, icon: UserRound, label: "Persona", hint: "Transporte de pasajero" },
+          { id: "Paquete" as ServiceType, icon: Package, label: "Paquete", hint: "Envío express" },
+        ]).map(({ id, icon: Icon, label, hint }) => (
+          <button
+            key={id}
+            onClick={() => setServiceType(id)}
+            className={cn(
+              "flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
+              serviceType === id
+                ? "border-neon bg-accent shadow-neon"
+                : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            <Icon className={cn("h-6 w-6 shrink-0", serviceType === id && "text-neon")} />
+            <div>
+              <div className={cn("text-sm font-bold", serviceType === id && "text-foreground")}>{label}</div>
+              <div className="text-[10px] opacity-80">{hint}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {serviceType === "Paquete" && (
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div>
+            <div className="mb-2 text-xs font-medium text-muted-foreground">Tamaño del paquete</div>
+            <div className="grid grid-cols-3 gap-2">
+              {SIZE_OPTIONS.map(({ id, hint }) => (
+                <button
+                  key={id}
+                  onClick={() => setPackageSize(id)}
+                  className={cn(
+                    "rounded-xl border p-2.5 text-xs transition-all",
+                    packageSize === id
+                      ? "border-neon bg-accent shadow-neon"
+                      : "border-border bg-secondary text-muted-foreground"
+                  )}
+                >
+                  <div className={cn("font-semibold", packageSize === id && "text-neon")}>{id}</div>
+                  <div className="mt-0.5 text-[10px] opacity-70">{hint}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Descripción y datos del destinatario (opcional)
+            </label>
+            <Input
+              value={packageNote}
+              onChange={(e) => setPackageNote(e.target.value)}
+              placeholder="Ej: Documentos, entregar a Juan · 300 123 4567"
+              className="h-11 rounded-xl border-border bg-input text-sm"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-card">
         <PlaceAutocomplete
-          label="Origen"
+          label={serviceType === "Paquete" ? "Recogida" : "Origen"}
           value={origin}
           onChange={setOrigin}
           placeholder="¿Dónde estás?"
