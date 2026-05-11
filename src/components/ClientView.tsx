@@ -230,10 +230,10 @@ export function ClientView() {
           accent="origin"
         />
         <PlaceAutocomplete
-          label="Destino"
+          label={serviceType === "Paquete" ? "Entrega" : "Destino"}
           value={destination}
           onChange={setDestination}
-          placeholder="¿A dónde vas en Medellín?"
+          placeholder={serviceType === "Paquete" ? "¿A dónde se entrega?" : "¿A dónde vas en Medellín?"}
           accent="destination"
         />
       </div>
