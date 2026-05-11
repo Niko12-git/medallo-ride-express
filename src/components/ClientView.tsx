@@ -53,8 +53,9 @@ export function ClientView() {
     const tDone = setTimeout(() => {
       const completed = { ...currentRide, status: "Completado" as const };
       pushHistory(completed);
+      setPendingRating(completed);
       setCurrentRide(null);
-      toast.success("Viaje completado", { description: "Gracias por viajar con Medallo Express." });
+      toast.success("Viaje completado", { description: "Califica tu experiencia." });
       notify(
         "completed",
         "Viaje completado ✅",
