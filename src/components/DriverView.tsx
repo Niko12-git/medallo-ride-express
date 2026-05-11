@@ -4,7 +4,7 @@ import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Navigation2, Wallet, Clock, CheckCircle2, X } from "lucide-react";
+import { MapPin, Navigation2, Wallet, Clock, CheckCircle2, X, Package, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
 
