@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useApp, quote, formatCOP, type PaymentMethod, type Place } from "@/lib/store";
+import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2 } from "lucide-react";
+import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2, UserRound, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
@@ -15,14 +16,23 @@ const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Bancolombia", icon: Building2, hint: "QR o transferencia" },
 ];
 
+const SIZE_OPTIONS: { id: PackageSize; hint: string }[] = [
+  { id: "Pequeño", hint: "Sobre / caja chica" },
+  { id: "Mediano", hint: "Hasta una mochila" },
+  { id: "Grande", hint: "Caja voluminosa" },
+];
+
 export function ClientView() {
   const { currentRide, setCurrentRide, pushHistory } = useApp();
   const [origin, setOrigin] = useState<Place | null>(null);
   const [destination, setDestination] = useState<Place | null>(null);
   const [payment, setPayment] = useState<PaymentMethod>("Nequi");
+  const [serviceType, setServiceType] = useState<ServiceType>("Persona");
+  const [packageSize, setPackageSize] = useState<PackageSize>("Mediano");
+  const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
 
-  const q = origin && destination ? quote(origin, destination) : null;
+  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize }) : null;
 
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") return;
@@ -64,6 +74,8 @@ export function ClientView() {
       payment,
       status: "Pendiente" as const,
       createdAt: Date.now(),
+      serviceType,
+      ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
     setTimeout(() => {
@@ -96,10 +108,22 @@ export function ClientView() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="font-semibold">Conductor confirmado</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-success">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="font-semibold">Conductor confirmado</span>
+                </div>
+                <span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-neon">
+                  {currentRide.serviceType === "Paquete" ? <Package className="h-3 w-3" /> : <UserRound className="h-3 w-3" />}
+                  {currentRide.serviceType ?? "Persona"}
+                  {currentRide.serviceType === "Paquete" && currentRide.packageSize ? ` · ${currentRide.packageSize}` : ""}
+                </span>
               </div>
+              {currentRide.serviceType === "Paquete" && currentRide.packageNote && (
+                <p className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground">
+                  {currentRide.packageNote}
+                </p>
+              )}
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neon-gradient text-lg font-bold text-neon-foreground">CM</div>
                 <div className="flex-1">
@@ -149,19 +173,79 @@ export function ClientView() {
         <RideMap origin={origin} destination={destination} />
       </div>
 
+      <div className="grid grid-cols-2 gap-2">
+        {([
+          { id: "Persona" as ServiceType, icon: UserRound, label: "Persona", hint: "Transporte de pasajero" },
+          { id: "Paquete" as ServiceType, icon: Package, label: "Paquete", hint: "Envío express" },
+        ]).map(({ id, icon: Icon, label, hint }) => (
+          <button
+            key={id}
+            onClick={() => setServiceType(id)}
+            className={cn(
+              "flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
+              serviceType === id
+                ? "border-neon bg-accent shadow-neon"
+                : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            <Icon className={cn("h-6 w-6 shrink-0", serviceType === id && "text-neon")} />
+            <div>
+              <div className={cn("text-sm font-bold", serviceType === id && "text-foreground")}>{label}</div>
+              <div className="text-[10px] opacity-80">{hint}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {serviceType === "Paquete" && (
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-card">
+          <div>
+            <div className="mb-2 text-xs font-medium text-muted-foreground">Tamaño del paquete</div>
+            <div className="grid grid-cols-3 gap-2">
+              {SIZE_OPTIONS.map(({ id, hint }) => (
+                <button
+                  key={id}
+                  onClick={() => setPackageSize(id)}
+                  className={cn(
+                    "rounded-xl border p-2.5 text-xs transition-all",
+                    packageSize === id
+                      ? "border-neon bg-accent shadow-neon"
+                      : "border-border bg-secondary text-muted-foreground"
+                  )}
+                >
+                  <div className={cn("font-semibold", packageSize === id && "text-neon")}>{id}</div>
+                  <div className="mt-0.5 text-[10px] opacity-70">{hint}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Descripción y datos del destinatario (opcional)
+            </label>
+            <Input
+              value={packageNote}
+              onChange={(e) => setPackageNote(e.target.value)}
+              placeholder="Ej: Documentos, entregar a Juan · 300 123 4567"
+              className="h-11 rounded-xl border-border bg-input text-sm"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-card">
         <PlaceAutocomplete
-          label="Origen"
+          label={serviceType === "Paquete" ? "Recogida" : "Origen"}
           value={origin}
           onChange={setOrigin}
           placeholder="¿Dónde estás?"
           accent="origin"
         />
         <PlaceAutocomplete
-          label="Destino"
+          label={serviceType === "Paquete" ? "Entrega" : "Destino"}
           value={destination}
           onChange={setDestination}
-          placeholder="¿A dónde vas en Medellín?"
+          placeholder={serviceType === "Paquete" ? "¿A dónde se entrega?" : "¿A dónde vas en Medellín?"}
           accent="destination"
         />
       </div>
@@ -208,7 +292,7 @@ export function ClientView() {
             onClick={requestRide}
             className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95"
           >
-            Solicitar motorizado
+            {serviceType === "Paquete" ? "Solicitar envío" : "Solicitar motorizado"}
           </Button>
         </div>
       )}

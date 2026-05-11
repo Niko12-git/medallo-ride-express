@@ -3,6 +3,8 @@ import { create } from "zustand";
 export type Role = "cliente" | "conductor";
 export type PaymentMethod = "Efectivo" | "Nequi" | "Bancolombia";
 export type RideStatus = "Pendiente" | "Aceptado" | "EnCurso" | "Completado" | "Cancelado";
+export type ServiceType = "Persona" | "Paquete";
+export type PackageSize = "Pequeño" | "Mediano" | "Grande";
 
 export interface Place {
   name: string;
@@ -21,6 +23,9 @@ export interface Ride {
   payment: PaymentMethod;
   status: RideStatus;
   createdAt: number;
+  serviceType?: ServiceType;
+  packageSize?: PackageSize;
+  packageNote?: string;
 }
 
 export interface ChatMessage {
@@ -113,7 +118,13 @@ const SURCHARGE: Record<string, number> = {
   "Santa Elena": 1.4,
 };
 
-export function quote(origin: Place, destination: Place) {
+export const PACKAGE_MULT: Record<PackageSize, number> = {
+  "Pequeño": 0.85,
+  "Mediano": 1.0,
+  "Grande": 1.25,
+};
+
+export function quote(origin: Place, destination: Place, opts?: { serviceType?: ServiceType; packageSize?: PackageSize }) {
   // Haversine
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -128,7 +139,11 @@ export function quote(origin: Place, destination: Place) {
   const perKm = 1800;
   let price = base + perKm * distanceKm;
   const mult = Math.max(SURCHARGE[origin.zone ?? ""] ?? 1, SURCHARGE[destination.zone ?? ""] ?? 1);
-  price = Math.round((price * mult) / 500) * 500;
+  price = price * mult;
+  if (opts?.serviceType === "Paquete") {
+    price = price * (PACKAGE_MULT[opts.packageSize ?? "Mediano"] ?? 1);
+  }
+  price = Math.round(price / 500) * 500;
   const surchargeZone =
     (SURCHARGE[origin.zone ?? ""] ?? 0) > 1
       ? origin.zone

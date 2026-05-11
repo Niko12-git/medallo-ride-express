@@ -4,7 +4,7 @@ import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin, Navigation2, Wallet, Clock, CheckCircle2, X } from "lucide-react";
+import { MapPin, Navigation2, Wallet, Clock, CheckCircle2, X, Package, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
 
@@ -12,7 +12,10 @@ function generateRequest(): Ride {
   const a = PLACES[Math.floor(Math.random() * PLACES.length)];
   let b = PLACES[Math.floor(Math.random() * PLACES.length)];
   while (b.name === a.name) b = PLACES[Math.floor(Math.random() * PLACES.length)];
-  const q = quote(a, b);
+  const isPackage = Math.random() < 0.4;
+  const sizes = ["Pequeño", "Mediano", "Grande"] as const;
+  const packageSize = isPackage ? sizes[Math.floor(Math.random() * 3)] : undefined;
+  const q = quote(a, b, isPackage ? { serviceType: "Paquete", packageSize } : undefined);
   return {
     id: crypto.randomUUID(),
     origin: a,
@@ -21,6 +24,8 @@ function generateRequest(): Ride {
     payment: ["Efectivo", "Nequi", "Bancolombia"][Math.floor(Math.random() * 3)] as any,
     status: "Pendiente",
     createdAt: Date.now(),
+    serviceType: isPackage ? "Paquete" : "Persona",
+    ...(isPackage ? { packageSize, packageNote: "Entregar en portería" } : {}),
   };
 }
 
@@ -122,8 +127,18 @@ export function DriverView() {
             <span className="rounded-full bg-neon px-2 py-0.5 text-[10px] font-bold uppercase text-neon-foreground">
               Nueva solicitud
             </span>
-            <span className="text-xs text-muted-foreground">{request.payment}</span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-neon">
+                {request.serviceType === "Paquete" ? <Package className="h-3 w-3" /> : <UserRound className="h-3 w-3" />}
+                {request.serviceType ?? "Persona"}
+                {request.serviceType === "Paquete" && request.packageSize ? ` · ${request.packageSize}` : ""}
+              </span>
+              <span className="text-xs text-muted-foreground">{request.payment}</span>
+            </div>
           </div>
+          {request.serviceType === "Paquete" && request.packageNote && (
+            <p className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground">{request.packageNote}</p>
+          )}
           <Route ride={request} />
           <div className="grid grid-cols-3 gap-2 text-center">
             <Pill icon={MapPin} label={`${request.distanceKm} km`} />
