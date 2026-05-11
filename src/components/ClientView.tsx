@@ -28,7 +28,7 @@ const SIZE_OPTIONS: { id: PackageSize; hint: string }[] = [
 ];
 
 export function ClientView() {
-  const { currentRide, setCurrentRide, pushHistory } = useApp();
+  const { currentRide, setCurrentRide, pushHistory, raining, setRaining, setPendingRating } = useApp();
   const [origin, setOrigin] = useState<Place | null>(null);
   const [destination, setDestination] = useState<Place | null>(null);
   const [payment, setPayment] = useState<PaymentMethod>("Nequi");
@@ -37,7 +37,7 @@ export function ClientView() {
   const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
 
-  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize }) : null;
+  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") return;
