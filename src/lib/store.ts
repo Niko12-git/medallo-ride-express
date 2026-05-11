@@ -50,14 +50,23 @@ interface AppState {
   setRole: (r: Role) => void;
   online: boolean;
   setOnline: (v: boolean) => void;
+  raining: boolean;
+  setRaining: (v: boolean) => void;
   currentRide: Ride | null;
   setCurrentRide: (r: Ride | null) => void;
   history: Ride[];
   pushHistory: (r: Ride) => void;
+  rateRide: (id: string, rating: number, comment?: string) => void;
+  pendingRating: Ride | null;
+  setPendingRating: (r: Ride | null) => void;
   messages: ChatMessage[];
   sendMessage: (m: Omit<ChatMessage, "id" | "at">) => void;
   panicCount: number;
   triggerPanic: () => void;
+  driverDocs: DriverDocs;
+  setDriverDocs: (d: Partial<DriverDocs>) => void;
+  cashedOut: number;
+  cashOut: (amount: number) => void;
 }
 
 export const useApp = create<AppState>((set) => ({
@@ -65,6 +74,8 @@ export const useApp = create<AppState>((set) => ({
   setRole: (r) => set({ role: r }),
   online: false,
   setOnline: (v) => set({ online: v }),
+  raining: false,
+  setRaining: (v) => set({ raining: v }),
   currentRide: null,
   setCurrentRide: (r) => set({ currentRide: r }),
   history: [
