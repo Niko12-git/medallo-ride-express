@@ -74,6 +74,8 @@ export function ClientView() {
       payment,
       status: "Pendiente" as const,
       createdAt: Date.now(),
+      serviceType,
+      ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
     setTimeout(() => {
