@@ -30,6 +30,7 @@ function Index() {
       </main>
       <PanicButton />
       <BottomNav />
+      <RatingModal />
       <Toaster theme="dark" position="top-center" richColors />
     </div>
   );
