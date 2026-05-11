@@ -280,7 +280,7 @@ export function ClientView() {
             onClick={requestRide}
             className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95"
           >
-            Solicitar motorizado
+            {serviceType === "Paquete" ? "Solicitar envío" : "Solicitar motorizado"}
           </Button>
         </div>
       )}
