@@ -26,6 +26,16 @@ export interface Ride {
   serviceType?: ServiceType;
   packageSize?: PackageSize;
   packageNote?: string;
+  raining?: boolean;
+  longDistance?: boolean;
+  rating?: number;
+  comment?: string;
+}
+
+export interface DriverDocs {
+  photo: boolean;
+  plate: boolean;
+  soat: boolean;
 }
 
 export interface ChatMessage {
@@ -40,14 +50,23 @@ interface AppState {
   setRole: (r: Role) => void;
   online: boolean;
   setOnline: (v: boolean) => void;
+  raining: boolean;
+  setRaining: (v: boolean) => void;
   currentRide: Ride | null;
   setCurrentRide: (r: Ride | null) => void;
   history: Ride[];
   pushHistory: (r: Ride) => void;
+  rateRide: (id: string, rating: number, comment?: string) => void;
+  pendingRating: Ride | null;
+  setPendingRating: (r: Ride | null) => void;
   messages: ChatMessage[];
   sendMessage: (m: Omit<ChatMessage, "id" | "at">) => void;
   panicCount: number;
   triggerPanic: () => void;
+  driverDocs: DriverDocs;
+  setDriverDocs: (d: Partial<DriverDocs>) => void;
+  cashedOut: number;
+  cashOut: (amount: number) => void;
 }
 
 export const useApp = create<AppState>((set) => ({
@@ -55,6 +74,8 @@ export const useApp = create<AppState>((set) => ({
   setRole: (r) => set({ role: r }),
   online: false,
   setOnline: (v) => set({ online: v }),
+  raining: false,
+  setRaining: (v) => set({ raining: v }),
   currentRide: null,
   setCurrentRide: (r) => set({ currentRide: r }),
   history: [
@@ -82,6 +103,12 @@ export const useApp = create<AppState>((set) => ({
     },
   ],
   pushHistory: (r) => set((s) => ({ history: [r, ...s.history] })),
+  rateRide: (id, rating, comment) =>
+    set((s) => ({
+      history: s.history.map((h) => (h.id === id ? { ...h, rating, comment } : h)),
+    })),
+  pendingRating: null,
+  setPendingRating: (r) => set({ pendingRating: r }),
   messages: [],
   sendMessage: (m) =>
     set((s) => ({
@@ -89,6 +116,10 @@ export const useApp = create<AppState>((set) => ({
     })),
   panicCount: 0,
   triggerPanic: () => set((s) => ({ panicCount: s.panicCount + 1 })),
+  driverDocs: { photo: false, plate: false, soat: false },
+  setDriverDocs: (d) => set((s) => ({ driverDocs: { ...s.driverDocs, ...d } })),
+  cashedOut: 0,
+  cashOut: (amount) => set((s) => ({ cashedOut: s.cashedOut + amount })),
 }));
 
 // --- Medellín data ---
@@ -110,6 +141,11 @@ export const PLACES: Place[] = [
   { name: "Centro Comercial El Tesoro", lat: 6.1972, lng: -75.5547, zone: "El Poblado" },
   { name: "Laureles, Primer Parque", lat: 6.2447, lng: -75.5915, zone: "Laureles" },
   { name: "Envigado Parque Principal", lat: 6.1697, lng: -75.5836, zone: "Envigado" },
+  { name: "Sabaneta Parque Principal", lat: 6.1517, lng: -75.6160, zone: "Sabaneta" },
+  { name: "Bello Parque Principal", lat: 6.3373, lng: -75.5582, zone: "Bello" },
+  { name: "Caldas Parque Principal", lat: 6.0911, lng: -75.6362, zone: "Caldas" },
+  { name: "Barbosa Parque Principal", lat: 6.4383, lng: -75.3320, zone: "Barbosa" },
+  { name: "Santa Fe de Antioquia", lat: 6.5569, lng: -75.8267, zone: "Occidente" },
 ];
 
 const SURCHARGE: Record<string, number> = {
@@ -124,7 +160,37 @@ export const PACKAGE_MULT: Record<PackageSize, number> = {
   "Grande": 1.25,
 };
 
-export function quote(origin: Place, destination: Place, opts?: { serviceType?: ServiceType; packageSize?: PackageSize }) {
+// Bounding box for the Medellín metropolitan area (Valle de Aburrá).
+// Anything outside is considered "long distance" and gets a 1.5x surcharge.
+// Anything outside the extended box is "out of coverage".
+export const METRO_BOUNDS = { latMin: 6.10, latMax: 6.40, lngMin: -75.70, lngMax: -75.45 };
+export const EXTENDED_BOUNDS = { latMin: 5.95, latMax: 6.55, lngMin: -75.85, lngMax: -75.30 };
+
+const inBounds = (p: Place, b: typeof METRO_BOUNDS) =>
+  p.lat >= b.latMin && p.lat <= b.latMax && p.lng >= b.lngMin && p.lng <= b.lngMax;
+
+export const isWithinMetro = (p: Place) => inBounds(p, METRO_BOUNDS);
+export const isWithinCoverage = (p: Place) => inBounds(p, EXTENDED_BOUNDS);
+
+export const RAIN_SURCHARGE = 1.15;
+export const LONG_DISTANCE_SURCHARGE = 1.5;
+
+export interface Quote {
+  distanceKm: number;
+  durationMin: number;
+  price: number;
+  surchargeZone: string | null;
+  longDistance: boolean;
+  outOfCoverage: boolean;
+  rainingApplied: boolean;
+  surcharges: string[];
+}
+
+export function quote(
+  origin: Place,
+  destination: Place,
+  opts?: { serviceType?: ServiceType; packageSize?: PackageSize; raining?: boolean },
+): Quote {
   // Haversine
   const R = 6371;
   const toRad = (d: number) => (d * Math.PI) / 180;
@@ -138,19 +204,39 @@ export function quote(origin: Place, destination: Place, opts?: { serviceType?: 
   const base = 4500;
   const perKm = 1800;
   let price = base + perKm * distanceKm;
+  const surcharges: string[] = [];
+
   const mult = Math.max(SURCHARGE[origin.zone ?? ""] ?? 1, SURCHARGE[destination.zone ?? ""] ?? 1);
-  price = price * mult;
+  if (mult > 1) price = price * mult;
+
   if (opts?.serviceType === "Paquete") {
-    price = price * (PACKAGE_MULT[opts.packageSize ?? "Mediano"] ?? 1);
+    const pm = PACKAGE_MULT[opts.packageSize ?? "Mediano"] ?? 1;
+    price = price * pm;
+    if (pm !== 1) surcharges.push(`Paquete ${opts.packageSize}`);
   }
+
+  const longDistance = !isWithinMetro(origin) || !isWithinMetro(destination);
+  const outOfCoverage = !isWithinCoverage(origin) || !isWithinCoverage(destination);
+  if (longDistance) {
+    price = price * LONG_DISTANCE_SURCHARGE;
+    surcharges.push("Larga distancia +50%");
+  }
+
+  const rainingApplied = !!opts?.raining;
+  if (rainingApplied) {
+    price = price * RAIN_SURCHARGE;
+    surcharges.push("Lluvia +15%");
+  }
+
   price = Math.round(price / 500) * 500;
   const surchargeZone =
     (SURCHARGE[origin.zone ?? ""] ?? 0) > 1
-      ? origin.zone
+      ? origin.zone ?? null
       : (SURCHARGE[destination.zone ?? ""] ?? 0) > 1
-      ? destination.zone
+      ? destination.zone ?? null
       : null;
-  return { distanceKm, durationMin, price, surchargeZone };
+
+  return { distanceKm, durationMin, price, surchargeZone, longDistance, outOfCoverage, rainingApplied, surcharges };
 }
 
 export const formatCOP = (n: number) =>

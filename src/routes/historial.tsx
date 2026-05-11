@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useApp, formatCOP } from "@/lib/store";
 import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
-import { CheckCircle2, XCircle, MapPin, Package, UserRound } from "lucide-react";
+import { CheckCircle2, XCircle, MapPin, Package, UserRound, Star, CloudRain } from "lucide-react";
 
 export const Route = createFileRoute("/historial")({
   head: () => ({ meta: [{ title: "Historial — Medallo Express" }] }),
@@ -56,9 +56,24 @@ function HistoryPage() {
                     {r.serviceType ?? "Persona"}
                     {r.serviceType === "Paquete" && r.packageSize ? ` · ${r.packageSize}` : ""}
                     {" · "}{r.distanceKm} km · {r.payment}
+                    {r.raining && <CloudRain className="h-3 w-3 text-neon" />}
                   </span>
                   <span className="text-base font-bold text-neon">{formatCOP(r.price)}</span>
                 </div>
+                {r.rating && (
+                  <div className="mt-2 flex items-center gap-1 border-t border-border pt-2 text-xs text-muted-foreground">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={
+                          "h-3 w-3 " +
+                          (n <= (r.rating ?? 0) ? "fill-warning text-warning" : "text-muted-foreground/30")
+                        }
+                      />
+                    ))}
+                    {r.comment && <span className="ml-1 italic">"{r.comment}"</span>}
+                  </div>
+                )}
               </li>
             ))}
           </ul>

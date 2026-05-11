@@ -2,10 +2,15 @@ import { useEffect, useState } from "react";
 import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2, UserRound, Package } from "lucide-react";
+import {
+  Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2,
+  UserRound, Package, CloudRain, AlertTriangle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
@@ -23,7 +28,7 @@ const SIZE_OPTIONS: { id: PackageSize; hint: string }[] = [
 ];
 
 export function ClientView() {
-  const { currentRide, setCurrentRide, pushHistory } = useApp();
+  const { currentRide, setCurrentRide, pushHistory, raining, setRaining, setPendingRating } = useApp();
   const [origin, setOrigin] = useState<Place | null>(null);
   const [destination, setDestination] = useState<Place | null>(null);
   const [payment, setPayment] = useState<PaymentMethod>("Nequi");
@@ -32,7 +37,7 @@ export function ClientView() {
   const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
 
-  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize }) : null;
+  const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") return;
@@ -48,8 +53,9 @@ export function ClientView() {
     const tDone = setTimeout(() => {
       const completed = { ...currentRide, status: "Completado" as const };
       pushHistory(completed);
+      setPendingRating(completed);
       setCurrentRide(null);
-      toast.success("Viaje completado", { description: "Gracias por viajar con Medallo Express." });
+      toast.success("Viaje completado", { description: "Califica tu experiencia." });
       notify(
         "completed",
         "Viaje completado ✅",
@@ -65,16 +71,26 @@ export function ClientView() {
 
   function requestRide() {
     if (!origin || !destination || !q) return;
+    if (q.outOfCoverage) {
+      toast.error("Zona fuera de cobertura", {
+        description: "Medallo Express opera en el Valle de Aburrá y municipios cercanos.",
+      });
+      return;
+    }
     setSearching(true);
     const ride = {
       id: crypto.randomUUID(),
       origin,
       destination,
-      ...q,
+      distanceKm: q.distanceKm,
+      durationMin: q.durationMin,
+      price: q.price,
       payment,
       status: "Pendiente" as const,
       createdAt: Date.now(),
       serviceType,
+      raining: q.rainingApplied,
+      longDistance: q.longDistance,
       ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
@@ -250,15 +266,50 @@ export function ClientView() {
         />
       </div>
 
+      <button
+        onClick={() => setRaining(!raining)}
+        className={cn(
+          "flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all",
+          raining ? "border-neon bg-accent shadow-neon" : "border-border bg-card",
+        )}
+      >
+        <CloudRain className={cn("h-5 w-5", raining ? "text-neon" : "text-muted-foreground")} />
+        <div className="flex-1">
+          <div className="text-sm font-bold">Está lloviendo</div>
+          <div className="text-[11px] text-muted-foreground">
+            Aplica un recargo del 15% para compensar al conductor.
+          </div>
+        </div>
+        <Switch checked={raining} onCheckedChange={setRaining} className="data-[state=checked]:bg-neon" />
+      </button>
+
+      {origin && destination && q && q.outOfCoverage && (
+        <div className="flex items-start gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+          <div>
+            <div className="font-bold text-destructive">Zona fuera de cobertura</div>
+            <div className="text-xs text-muted-foreground">
+              Medallo Express opera principalmente en el Valle de Aburrá. Elige un punto más cercano para continuar.
+            </div>
+          </div>
+        </div>
+      )}
+
       {origin && destination && q && (
         <div className="space-y-3 rounded-2xl border border-neon/30 bg-card p-4 shadow-card">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cotización</h3>
-            {q.surchargeZone && (
-              <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[10px] font-semibold text-warning">
-                <Sparkles className="h-3 w-3" /> Recargo {q.surchargeZone}
-              </span>
-            )}
+            <div className="flex flex-wrap gap-1">
+              {q.surchargeZone && (
+                <Badge tone="warning"><Sparkles className="h-3 w-3" /> Recargo {q.surchargeZone}</Badge>
+              )}
+              {q.longDistance && !q.outOfCoverage && (
+                <Badge tone="warning"><AlertTriangle className="h-3 w-3" /> Larga distancia</Badge>
+              )}
+              {q.rainingApplied && (
+                <Badge tone="info"><CloudRain className="h-3 w-3" /> Lluvia +15%</Badge>
+              )}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <Stat icon={Route} label="Distancia" value={`${q.distanceKm} km`} />
@@ -290,9 +341,14 @@ export function ClientView() {
 
           <Button
             onClick={requestRide}
-            className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95"
+            disabled={q.outOfCoverage}
+            className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95 disabled:opacity-50"
           >
-            {serviceType === "Paquete" ? "Solicitar envío" : "Solicitar motorizado"}
+            {q.outOfCoverage
+              ? "Fuera de cobertura"
+              : serviceType === "Paquete"
+              ? "Solicitar envío"
+              : "Solicitar motorizado"}
           </Button>
         </div>
       )}
@@ -319,5 +375,25 @@ function Stat({ icon: Icon, label, value, highlight }: { icon: any; label: strin
       <div className="text-[10px] uppercase text-muted-foreground">{label}</div>
       <div className={cn("text-sm font-bold", highlight && "text-neon")}>{value}</div>
     </div>
+  );
+}
+
+function Badge({
+  tone = "warning",
+  children,
+}: {
+  tone?: "warning" | "info";
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+        tone === "warning" && "bg-warning/15 text-warning",
+        tone === "info" && "bg-accent text-neon",
+      )}
+    >
+      {children}
+    </span>
   );
 }

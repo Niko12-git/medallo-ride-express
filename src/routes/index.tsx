@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { PanicButton } from "@/components/PanicButton";
 import { NotificationsPrompt } from "@/components/NotificationsPrompt";
+import { RatingModal } from "@/components/RatingModal";
 import { Toaster } from "@/components/ui/sonner";
 
 export const Route = createFileRoute("/")({
@@ -29,6 +30,7 @@ function Index() {
       </main>
       <PanicButton />
       <BottomNav />
+      <RatingModal />
       <Toaster theme="dark" position="top-center" richColors />
     </div>
   );
