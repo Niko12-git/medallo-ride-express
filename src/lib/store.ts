@@ -23,6 +23,9 @@ export interface Ride {
   payment: PaymentMethod;
   status: RideStatus;
   createdAt: number;
+  serviceType?: ServiceType;
+  packageSize?: PackageSize;
+  packageNote?: string;
 }
 
 export interface ChatMessage {
