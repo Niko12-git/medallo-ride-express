@@ -3,6 +3,8 @@ import { create } from "zustand";
 export type Role = "cliente" | "conductor";
 export type PaymentMethod = "Efectivo" | "Nequi" | "Bancolombia";
 export type RideStatus = "Pendiente" | "Aceptado" | "EnCurso" | "Completado" | "Cancelado";
+export type ServiceType = "Persona" | "Paquete";
+export type PackageSize = "Pequeño" | "Mediano" | "Grande";
 
 export interface Place {
   name: string;
