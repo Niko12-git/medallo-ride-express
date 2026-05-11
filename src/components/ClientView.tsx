@@ -108,10 +108,22 @@ export function ClientView() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="font-semibold">Conductor confirmado</span>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-success">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="font-semibold">Conductor confirmado</span>
+                </div>
+                <span className="flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase text-neon">
+                  {currentRide.serviceType === "Paquete" ? <Package className="h-3 w-3" /> : <UserRound className="h-3 w-3" />}
+                  {currentRide.serviceType ?? "Persona"}
+                  {currentRide.serviceType === "Paquete" && currentRide.packageSize ? ` · ${currentRide.packageSize}` : ""}
+                </span>
               </div>
+              {currentRide.serviceType === "Paquete" && currentRide.packageNote && (
+                <p className="rounded-lg bg-secondary p-2 text-xs text-muted-foreground">
+                  {currentRide.packageNote}
+                </p>
+              )}
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neon-gradient text-lg font-bold text-neon-foreground">CM</div>
                 <div className="flex-1">
