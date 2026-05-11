@@ -103,6 +103,12 @@ export const useApp = create<AppState>((set) => ({
     },
   ],
   pushHistory: (r) => set((s) => ({ history: [r, ...s.history] })),
+  rateRide: (id, rating, comment) =>
+    set((s) => ({
+      history: s.history.map((h) => (h.id === id ? { ...h, rating, comment } : h)),
+    })),
+  pendingRating: null,
+  setPendingRating: (r) => set({ pendingRating: r }),
   messages: [],
   sendMessage: (m) =>
     set((s) => ({
@@ -110,6 +116,10 @@ export const useApp = create<AppState>((set) => ({
     })),
   panicCount: 0,
   triggerPanic: () => set((s) => ({ panicCount: s.panicCount + 1 })),
+  driverDocs: { photo: false, plate: false, soat: false },
+  setDriverDocs: (d) => set((s) => ({ driverDocs: { ...s.driverDocs, ...d } })),
+  cashedOut: 0,
+  cashOut: (amount) => set((s) => ({ cashedOut: s.cashedOut + amount })),
 }));
 
 // --- Medellín data ---
