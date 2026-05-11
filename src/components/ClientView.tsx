@@ -377,3 +377,23 @@ function Stat({ icon: Icon, label, value, highlight }: { icon: any; label: strin
     </div>
   );
 }
+
+function Badge({
+  tone = "warning",
+  children,
+}: {
+  tone?: "warning" | "info";
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+        tone === "warning" && "bg-warning/15 text-warning",
+        tone === "info" && "bg-accent text-neon",
+      )}
+    >
+      {children}
+    </span>
+  );
+}
