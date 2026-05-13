@@ -296,63 +296,72 @@ export function ClientView() {
         </div>
       )}
 
-      {origin && destination && q && (
-        <div className="space-y-3 rounded-2xl border border-neon/30 bg-card p-4 shadow-card">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cotización</h3>
-            <div className="flex flex-wrap gap-1">
-              {q.surchargeZone && (
-                <Badge tone="warning"><Sparkles className="h-3 w-3" /> Recargo {q.surchargeZone}</Badge>
-              )}
-              {q.longDistance && !q.outOfCoverage && (
-                <Badge tone="warning"><AlertTriangle className="h-3 w-3" /> Larga distancia</Badge>
-              )}
-              {q.rainingApplied && (
-                <Badge tone="info"><CloudRain className="h-3 w-3" /> Lluvia +15%</Badge>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 text-center">
-            <Stat icon={Route} label="Distancia" value={`${q.distanceKm} km`} />
-            <Stat icon={Clock} label="Tiempo" value={`${q.durationMin} min`} />
-            <Stat icon={Sparkles} label="Precio" value={formatCOP(q.price)} highlight />
-          </div>
-
-          <div>
-            <div className="mb-2 text-xs font-medium text-muted-foreground">Método de pago</div>
-            <div className="grid grid-cols-3 gap-2">
-              {PAY_OPTIONS.map(({ id, icon: Icon, hint }) => (
-                <button
-                  key={id}
-                  onClick={() => setPayment(id)}
-                  className={cn(
-                    "flex flex-col items-center gap-1 rounded-xl border p-2.5 text-xs transition-all",
-                    payment === id
-                      ? "border-neon bg-accent shadow-neon"
-                      : "border-border bg-secondary text-muted-foreground"
-                  )}
-                >
-                  <Icon className={cn("h-5 w-5", payment === id && "text-neon")} />
-                  <span className="font-semibold">{id}</span>
-                  <span className="text-[10px] opacity-70">{hint}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <Button
-            onClick={requestRide}
-            disabled={q.outOfCoverage}
-            className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95 disabled:opacity-50"
+      <AnimatePresence>
+        {origin && destination && q && (
+          <motion.div
+            key="quote-card"
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 28, mass: 0.9 }}
+            className="space-y-3 rounded-2xl border border-neon/30 bg-card p-4 shadow-card"
           >
-            {q.outOfCoverage
-              ? "Fuera de cobertura"
-              : serviceType === "Paquete"
-              ? "Solicitar envío"
-              : "Solicitar motorizado"}
-          </Button>
-        </div>
-      )}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Cotización</h3>
+              <div className="flex flex-wrap gap-1">
+                {q.surchargeZone && (
+                  <Badge tone="warning"><Sparkles className="h-3 w-3" /> Recargo {q.surchargeZone}</Badge>
+                )}
+                {q.longDistance && !q.outOfCoverage && (
+                  <Badge tone="warning"><AlertTriangle className="h-3 w-3" /> Larga distancia</Badge>
+                )}
+                {q.rainingApplied && (
+                  <Badge tone="info"><CloudRain className="h-3 w-3" /> Lluvia +15%</Badge>
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <Stat icon={Route} label="Distancia" value={`${q.distanceKm} km`} />
+              <Stat icon={Clock} label="Tiempo" value={`${q.durationMin} min`} />
+              <Stat icon={Sparkles} label="Precio" value={formatCOP(q.price)} highlight />
+            </div>
+
+            <div>
+              <div className="mb-2 text-xs font-medium text-muted-foreground">Método de pago</div>
+              <div className="grid grid-cols-3 gap-2">
+                {PAY_OPTIONS.map(({ id, icon: Icon, hint }) => (
+                  <button
+                    key={id}
+                    onClick={() => setPayment(id)}
+                    className={cn(
+                      "flex flex-col items-center gap-1 rounded-xl border p-2.5 text-xs transition-all",
+                      payment === id
+                        ? "border-neon bg-accent shadow-neon"
+                        : "border-border bg-secondary text-muted-foreground"
+                    )}
+                  >
+                    <Icon className={cn("h-5 w-5", payment === id && "text-neon")} />
+                    <span className="font-semibold">{id}</span>
+                    <span className="text-[10px] opacity-70">{hint}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              onClick={requestRide}
+              disabled={q.outOfCoverage}
+              className="h-12 w-full bg-neon-gradient text-base font-bold text-neon-foreground shadow-neon hover:opacity-95 disabled:opacity-50"
+            >
+              {q.outOfCoverage
+                ? "Fuera de cobertura"
+                : serviceType === "Paquete"
+                ? "Solicitar envío"
+                : "Solicitar motorizado"}
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {!origin || !destination ? (
         <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center">
