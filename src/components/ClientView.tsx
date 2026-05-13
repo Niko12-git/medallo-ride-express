@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
+import { AnimatePresence, motion } from "framer-motion";
 
 const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Efectivo", icon: Banknote, hint: "Paga al llegar" },
