@@ -104,6 +104,13 @@ export function RideMap({ origin, destination, className, heatZones, driver }: R
       })}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
+      {driver && (
+        <Marker position={[driver.lat, driver.lng]} icon={bikeIcon(!!driver.blink)}>
+          <Tooltip direction="top" offset={[0, -16]} opacity={0.95}>
+            Carlos M. · 🏍️
+          </Tooltip>
+        </Marker>
+      )}
       {points.length === 2 && (
         <Polyline
           positions={points}
