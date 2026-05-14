@@ -70,26 +70,26 @@ export function RideMap({ origin, destination, className, heatZones }: RideMapPr
         attribution='&copy; OpenStreetMap'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {heatZones?.map((z) => {
+      {heatZones?.flatMap((z) => {
         const color = heatColor(z.intensity);
-        return (
-          <g key={z.name}>
-            <Circle
-              center={[z.lat, z.lng]}
-              radius={z.radiusM * 1.6}
-              pathOptions={{ color, fillColor: color, fillOpacity: 0.08, weight: 0 }}
-            />
-            <Circle
-              center={[z.lat, z.lng]}
-              radius={z.radiusM}
-              pathOptions={{ color, fillColor: color, fillOpacity: 0.22, weight: 1, opacity: 0.6 }}
-            >
-              <Tooltip direction="top" offset={[0, -4]} opacity={0.95}>
-                🔥 {z.name} · alta demanda
-              </Tooltip>
-            </Circle>
-          </g>
-        );
+        return [
+          <Circle
+            key={z.name + "-glow"}
+            center={[z.lat, z.lng]}
+            radius={z.radiusM * 1.6}
+            pathOptions={{ color, fillColor: color, fillOpacity: 0.08, weight: 0 }}
+          />,
+          <Circle
+            key={z.name + "-core"}
+            center={[z.lat, z.lng]}
+            radius={z.radiusM}
+            pathOptions={{ color, fillColor: color, fillOpacity: 0.22, weight: 1, opacity: 0.6 }}
+          >
+            <Tooltip direction="top" offset={[0, -4]} opacity={0.95}>
+              🔥 {z.name} · alta demanda
+            </Tooltip>
+          </Circle>,
+        ];
       })}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
