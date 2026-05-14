@@ -17,6 +17,15 @@ const dotIcon = L.divIcon({
   iconAnchor: [7, 7],
 });
 
+function bikeIcon(blink: boolean) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="${blink ? "medallo-blink" : ""}" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#0a0a0a;border:2px solid oklch(0.88 0.24 145);box-shadow:0 0 14px oklch(0.88 0.24 145 / .9);font-size:20px;line-height:1">🏍️</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
+}
+
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
