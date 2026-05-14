@@ -3,7 +3,7 @@
 // nativas del sistema (incluso con la PWA instalada). Si no, hace fallback a
 // vibración + toast (manejado por el llamador).
 
-export type NotifyKind = "panic" | "accepted" | "enroute" | "completed" | "info";
+export type NotifyKind = "panic" | "accepted" | "enroute" | "nearby" | "completed" | "info";
 
 const ICON = "/icon-192.png";
 const BADGE = "/icon-192.png";
