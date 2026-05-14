@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
@@ -9,12 +9,24 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2,
-  UserRound, Package, CloudRain, AlertTriangle,
+  UserRound, Package, CloudRain, AlertTriangle, Bike,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
 import { AnimatePresence, motion } from "framer-motion";
+
+// Haversine en metros para detectar cercanía del conductor
+function distMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
 
 const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Efectivo", icon: Banknote, hint: "Paga al llegar" },
