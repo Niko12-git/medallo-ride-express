@@ -42,7 +42,7 @@ function heatColor(intensity: number) {
   return `hsl(${hue}, 95%, 50%)`;
 }
 
-export function RideMap({ origin, destination, className }: RideMapProps) {
+export function RideMap({ origin, destination, className, heatZones }: RideMapProps) {
   const points = useMemo(() => {
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
