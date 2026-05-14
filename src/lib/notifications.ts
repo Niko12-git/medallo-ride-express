@@ -33,6 +33,7 @@ const VIBRATION: Record<NotifyKind, number[]> = {
   panic: [220, 90, 220, 90, 220],
   accepted: [120, 60, 120],
   enroute: [80, 40, 80],
+  nearby: [180, 60, 180, 60, 180],
   completed: [200],
   info: [60],
 };
