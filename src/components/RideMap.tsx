@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Circle, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
-import { MEDELLIN_CENTER, type Place } from "@/lib/store";
+import { MEDELLIN_CENTER, type Place, type HeatZone } from "@/lib/store";
 
 // Fix leaflet default icon paths in bundlers
 const neonIcon = L.divIcon({
@@ -33,9 +33,16 @@ export interface RideMapProps {
   origin?: Place | null;
   destination?: Place | null;
   className?: string;
+  heatZones?: HeatZone[];
 }
 
-export function RideMap({ origin, destination, className }: RideMapProps) {
+function heatColor(intensity: number) {
+  // 0 → naranja, 1 → rojo intenso
+  const hue = 30 - intensity * 30;
+  return `hsl(${hue}, 95%, 50%)`;
+}
+
+export function RideMap({ origin, destination, className, heatZones }: RideMapProps) {
   const points = useMemo(() => {
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
@@ -63,6 +70,27 @@ export function RideMap({ origin, destination, className }: RideMapProps) {
         attribution='&copy; OpenStreetMap'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {heatZones?.flatMap((z) => {
+        const color = heatColor(z.intensity);
+        return [
+          <Circle
+            key={z.name + "-glow"}
+            center={[z.lat, z.lng]}
+            radius={z.radiusM * 1.6}
+            pathOptions={{ color, fillColor: color, fillOpacity: 0.08, weight: 0 }}
+          />,
+          <Circle
+            key={z.name + "-core"}
+            center={[z.lat, z.lng]}
+            radius={z.radiusM}
+            pathOptions={{ color, fillColor: color, fillOpacity: 0.22, weight: 1, opacity: 0.6 }}
+          >
+            <Tooltip direction="top" offset={[0, -4]} opacity={0.95}>
+              🔥 {z.name} · alta demanda
+            </Tooltip>
+          </Circle>,
+        ];
+      })}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
       {points.length === 2 && (

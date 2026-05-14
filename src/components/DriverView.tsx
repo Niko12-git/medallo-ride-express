@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useApp, PLACES, quote, formatCOP, type Ride } from "@/lib/store";
+import { useApp, PLACES, quote, formatCOP, HEAT_ZONES, type Ride } from "@/lib/store";
 import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -92,7 +92,18 @@ export function DriverView() {
       </div>
 
       <div className="relative h-64 overflow-hidden rounded-2xl border border-border shadow-card">
-        <RideMap origin={currentRide?.origin} destination={currentRide?.destination} />
+        <RideMap origin={currentRide?.origin} destination={currentRide?.destination} heatZones={online && !currentRide ? HEAT_ZONES : undefined} />
+        {online && !currentRide && (
+          <div className="pointer-events-none absolute left-2 top-2 z-[400] rounded-lg bg-background/85 px-2 py-1.5 text-[10px] font-semibold backdrop-blur">
+            <div className="mb-1 flex items-center gap-1 uppercase text-muted-foreground">
+              <span>🔥</span> Zonas de calor
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-6 rounded-full" style={{ background: "linear-gradient(90deg,hsl(30,95%,50%),hsl(0,95%,50%))" }} />
+              <span className="text-muted-foreground">demanda</span>
+            </div>
+          </div>
+        )}
         {!currentRide && (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-background/90 to-transparent p-4">
             <p className="text-xs text-muted-foreground">

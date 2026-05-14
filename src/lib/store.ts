@@ -172,6 +172,26 @@ const inBounds = (p: Place, b: typeof METRO_BOUNDS) =>
 export const isWithinMetro = (p: Place) => inBounds(p, METRO_BOUNDS);
 export const isWithinCoverage = (p: Place) => inBounds(p, EXTENDED_BOUNDS);
 
+export interface HeatZone {
+  name: string;
+  lat: number;
+  lng: number;
+  radiusM: number;
+  intensity: number; // 0..1
+}
+
+// Zonas con mayor demanda de servicios en Medellín
+export const HEAT_ZONES: HeatZone[] = [
+  { name: "Provenza", lat: 6.2089, lng: -75.5687, radiusM: 650, intensity: 1.0 },
+  { name: "La 70", lat: 6.2447, lng: -75.5905, radiusM: 700, intensity: 0.9 },
+  { name: "Parque Lleras", lat: 6.2086, lng: -75.5673, radiusM: 500, intensity: 0.95 },
+  { name: "Laureles", lat: 6.2447, lng: -75.5836, radiusM: 800, intensity: 0.75 },
+  { name: "El Poblado", lat: 6.2096, lng: -75.5680, radiusM: 900, intensity: 0.85 },
+  { name: "Centro", lat: 6.2518, lng: -75.5636, radiusM: 750, intensity: 0.7 },
+  { name: "Sabaneta", lat: 6.1516, lng: -75.6166, radiusM: 700, intensity: 0.6 },
+  { name: "Envigado", lat: 6.1701, lng: -75.5915, radiusM: 750, intensity: 0.65 },
+];
+
 export const RAIN_SURCHARGE = 1.15;
 export const LONG_DISTANCE_SURCHARGE = 1.5;
 
