@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Circle, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
-import { MEDELLIN_CENTER, type Place } from "@/lib/store";
+import { MEDELLIN_CENTER, type Place, type HeatZone } from "@/lib/store";
 
 // Fix leaflet default icon paths in bundlers
 const neonIcon = L.divIcon({
