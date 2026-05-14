@@ -57,8 +57,9 @@ export function RideMap({ origin, destination, className, heatZones, driver }: R
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
     if (destination) p.push([destination.lat, destination.lng]);
+    if (driver) p.push([driver.lat, driver.lng]);
     return p;
-  }, [origin, destination]);
+  }, [origin, destination, driver]);
 
   const ref = useRef<L.Map>(null);
   const [mounted, setMounted] = useState(false);
