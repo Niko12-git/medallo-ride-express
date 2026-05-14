@@ -167,7 +167,37 @@ export function ClientView() {
     return (
       <div className="space-y-3">
         <div className="relative h-64 overflow-hidden rounded-2xl border border-border shadow-card">
-          <RideMap origin={currentRide.origin} destination={currentRide.destination} />
+          <RideMap
+            origin={currentRide.origin}
+            destination={currentRide.destination}
+            driver={driverPos ? { ...driverPos, blink: driverNearby } : null}
+          />
+          <AnimatePresence>
+            {driverNearby && (
+              <motion.div
+                key="nearby-banner"
+                initial={{ y: -40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -40, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 380, damping: 26 }}
+                className="pointer-events-none absolute inset-x-3 top-3 z-[1000]"
+              >
+                <div className="flex items-center gap-3 rounded-2xl border border-neon/60 bg-background/90 p-3 shadow-neon backdrop-blur">
+                  <div className="flex h-10 w-10 shrink-0 animate-pulse items-center justify-center rounded-full bg-neon-gradient text-neon-foreground">
+                    <Bike className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-base font-extrabold leading-tight text-neon">
+                      ¡Tu conductor está a la vuelta!
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      A menos de 500 m · sal al punto de encuentro.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           {currentRide.status === "Pendiente" || searching ? (
