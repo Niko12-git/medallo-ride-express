@@ -80,6 +80,14 @@ export function ClientView() {
       if (d < 500 && !nearbyNotified.current) {
         nearbyNotified.current = true;
         setDriverNearby(true);
+        // Vibración explícita del dispositivo (además de la del notify)
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          try {
+            navigator.vibrate([300, 100, 300, 100, 500]);
+          } catch {
+            /* ignore */
+          }
+        }
         notify(
           "nearby",
           "¡Tu conductor está a la vuelta! 🏍️",
