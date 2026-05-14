@@ -49,11 +49,51 @@ export function ClientView() {
   const [packageSize, setPackageSize] = useState<PackageSize>("Mediano");
   const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
+  const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [driverNearby, setDriverNearby] = useState(false);
+  const nearbyNotified = useRef(false);
 
   const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
   useEffect(() => {
-    if (!currentRide || currentRide.status !== "Aceptado") return;
+    if (!currentRide || currentRide.status !== "Aceptado") {
+      setDriverPos(null);
+      setDriverNearby(false);
+      nearbyNotified.current = false;
+      return;
+    }
+    const o = currentRide.origin;
+    // Punto de inicio simulado: ~1.3 km al noroeste del origen
+    const start = { lat: o.lat + 0.011, lng: o.lng - 0.009 };
+    setDriverPos(start);
+
+    const totalMs = 7000;
+    const startedAt = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - startedAt) / totalMs);
+      const lat = start.lat + (o.lat - start.lat) * t;
+      const lng = start.lng + (o.lng - start.lng) * t;
+      const pos = { lat, lng };
+      setDriverPos(pos);
+      const d = distMeters(pos, o);
+      if (d < 500 && !nearbyNotified.current) {
+        nearbyNotified.current = true;
+        setDriverNearby(true);
+        notify(
+          "nearby",
+          "¡Tu conductor está a la vuelta! 🏍️",
+          `Carlos M. está a menos de 500 m de ${o.name}. ¡Prepárate!`,
+          { tag: `ride-${currentRide.id}` },
+        );
+        toast("¡Tu conductor está a la vuelta!", {
+          description: "Está a menos de 500 metros del punto de encuentro.",
+        });
+      }
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
     const tEnroute = setTimeout(() => {
       notify(
         "enroute",
@@ -77,10 +117,11 @@ export function ClientView() {
       );
     }, 8000);
     return () => {
+      cancelAnimationFrame(raf);
       clearTimeout(tEnroute);
       clearTimeout(tDone);
     };
-  }, [currentRide, pushHistory, setCurrentRide]);
+  }, [currentRide, pushHistory, setCurrentRide, setPendingRating]);
 
   function requestRide() {
     if (!origin || !destination || !q) return;
