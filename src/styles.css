@@ -119,3 +119,12 @@
   color: oklch(0.7 0.02 240) !important;
 }
 .leaflet-control-attribution a { color: var(--neon) !important; }
+
+/* Bike marker blink when driver is around the corner */
+@keyframes medallo-blink {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 14px oklch(0.88 0.24 145 / .9); }
+  50% { opacity: 0.45; transform: scale(1.18); box-shadow: 0 0 28px oklch(0.88 0.24 145 / 1); }
+}
+.medallo-blink {
+  animation: medallo-blink 0.7s ease-in-out infinite;
+}

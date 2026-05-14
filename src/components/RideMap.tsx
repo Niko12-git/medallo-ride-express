@@ -17,6 +17,15 @@ const dotIcon = L.divIcon({
   iconAnchor: [7, 7],
 });
 
+function bikeIcon(blink: boolean) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="${blink ? "medallo-blink" : ""}" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#0a0a0a;border:2px solid oklch(0.88 0.24 145);box-shadow:0 0 14px oklch(0.88 0.24 145 / .9);font-size:20px;line-height:1">🏍️</div>`,
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+  });
+}
+
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
@@ -34,6 +43,7 @@ export interface RideMapProps {
   destination?: Place | null;
   className?: string;
   heatZones?: HeatZone[];
+  driver?: { lat: number; lng: number; blink?: boolean } | null;
 }
 
 function heatColor(intensity: number) {
@@ -42,13 +52,14 @@ function heatColor(intensity: number) {
   return `hsl(${hue}, 95%, 50%)`;
 }
 
-export function RideMap({ origin, destination, className, heatZones }: RideMapProps) {
+export function RideMap({ origin, destination, className, heatZones, driver }: RideMapProps) {
   const points = useMemo(() => {
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
     if (destination) p.push([destination.lat, destination.lng]);
+    if (driver) p.push([driver.lat, driver.lng]);
     return p;
-  }, [origin, destination]);
+  }, [origin, destination, driver]);
 
   const ref = useRef<L.Map>(null);
   const [mounted, setMounted] = useState(false);
@@ -93,6 +104,13 @@ export function RideMap({ origin, destination, className, heatZones }: RideMapPr
       })}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
+      {driver && (
+        <Marker position={[driver.lat, driver.lng]} icon={bikeIcon(!!driver.blink)}>
+          <Tooltip direction="top" offset={[0, -16]} opacity={0.95}>
+            Carlos M. · 🏍️
+          </Tooltip>
+        </Marker>
+      )}
       {points.length === 2 && (
         <Polyline
           positions={points}

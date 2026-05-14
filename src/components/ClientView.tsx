@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useApp, quote, formatCOP, type PaymentMethod, type Place, type ServiceType, type PackageSize } from "@/lib/store";
 import { PlaceAutocomplete } from "./PlaceAutocomplete";
 import { RideMap } from "./RideMap";
@@ -9,12 +9,24 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Banknote, Smartphone, Building2, Clock, Route, Sparkles, CheckCircle2,
-  UserRound, Package, CloudRain, AlertTriangle,
+  UserRound, Package, CloudRain, AlertTriangle, Bike,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { notify } from "@/lib/notifications";
 import { AnimatePresence, motion } from "framer-motion";
+
+// Haversine en metros para detectar cercanía del conductor
+function distMeters(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
 
 const PAY_OPTIONS: { id: PaymentMethod; icon: any; hint: string }[] = [
   { id: "Efectivo", icon: Banknote, hint: "Paga al llegar" },
@@ -37,11 +49,51 @@ export function ClientView() {
   const [packageSize, setPackageSize] = useState<PackageSize>("Mediano");
   const [packageNote, setPackageNote] = useState("");
   const [searching, setSearching] = useState(false);
+  const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
+  const [driverNearby, setDriverNearby] = useState(false);
+  const nearbyNotified = useRef(false);
 
   const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
   useEffect(() => {
-    if (!currentRide || currentRide.status !== "Aceptado") return;
+    if (!currentRide || currentRide.status !== "Aceptado") {
+      setDriverPos(null);
+      setDriverNearby(false);
+      nearbyNotified.current = false;
+      return;
+    }
+    const o = currentRide.origin;
+    // Punto de inicio simulado: ~1.3 km al noroeste del origen
+    const start = { lat: o.lat + 0.011, lng: o.lng - 0.009 };
+    setDriverPos(start);
+
+    const totalMs = 7000;
+    const startedAt = performance.now();
+    let raf = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - startedAt) / totalMs);
+      const lat = start.lat + (o.lat - start.lat) * t;
+      const lng = start.lng + (o.lng - start.lng) * t;
+      const pos = { lat, lng };
+      setDriverPos(pos);
+      const d = distMeters(pos, o);
+      if (d < 500 && !nearbyNotified.current) {
+        nearbyNotified.current = true;
+        setDriverNearby(true);
+        notify(
+          "nearby",
+          "¡Tu conductor está a la vuelta! 🏍️",
+          `Carlos M. está a menos de 500 m de ${o.name}. ¡Prepárate!`,
+          { tag: `ride-${currentRide.id}` },
+        );
+        toast("¡Tu conductor está a la vuelta!", {
+          description: "Está a menos de 500 metros del punto de encuentro.",
+        });
+      }
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
     const tEnroute = setTimeout(() => {
       notify(
         "enroute",
@@ -65,10 +117,11 @@ export function ClientView() {
       );
     }, 8000);
     return () => {
+      cancelAnimationFrame(raf);
       clearTimeout(tEnroute);
       clearTimeout(tDone);
     };
-  }, [currentRide, pushHistory, setCurrentRide]);
+  }, [currentRide, pushHistory, setCurrentRide, setPendingRating]);
 
   function requestRide() {
     if (!origin || !destination || !q) return;
@@ -114,7 +167,37 @@ export function ClientView() {
     return (
       <div className="space-y-3">
         <div className="relative h-64 overflow-hidden rounded-2xl border border-border shadow-card">
-          <RideMap origin={currentRide.origin} destination={currentRide.destination} />
+          <RideMap
+            origin={currentRide.origin}
+            destination={currentRide.destination}
+            driver={driverPos ? { ...driverPos, blink: driverNearby } : null}
+          />
+          <AnimatePresence>
+            {driverNearby && (
+              <motion.div
+                key="nearby-banner"
+                initial={{ y: -40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -40, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 380, damping: 26 }}
+                className="pointer-events-none absolute inset-x-3 top-3 z-[1000]"
+              >
+                <div className="flex items-center gap-3 rounded-2xl border border-neon/60 bg-background/90 p-3 shadow-neon backdrop-blur">
+                  <div className="flex h-10 w-10 shrink-0 animate-pulse items-center justify-center rounded-full bg-neon-gradient text-neon-foreground">
+                    <Bike className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-base font-extrabold leading-tight text-neon">
+                      ¡Tu conductor está a la vuelta!
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      A menos de 500 m · sal al punto de encuentro.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
           {currentRide.status === "Pendiente" || searching ? (

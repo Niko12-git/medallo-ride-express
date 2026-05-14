@@ -3,7 +3,7 @@
 // nativas del sistema (incluso con la PWA instalada). Si no, hace fallback a
 // vibración + toast (manejado por el llamador).
 
-export type NotifyKind = "panic" | "accepted" | "enroute" | "completed" | "info";
+export type NotifyKind = "panic" | "accepted" | "enroute" | "nearby" | "completed" | "info";
 
 const ICON = "/icon-192.png";
 const BADGE = "/icon-192.png";
@@ -33,6 +33,7 @@ const VIBRATION: Record<NotifyKind, number[]> = {
   panic: [220, 90, 220, 90, 220],
   accepted: [120, 60, 120],
   enroute: [80, 40, 80],
+  nearby: [180, 60, 180, 60, 180],
   completed: [200],
   info: [60],
 };
