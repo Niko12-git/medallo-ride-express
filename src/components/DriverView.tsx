@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useApp, PLACES, quote, formatCOP, type Ride } from "@/lib/store";
+import { useApp, PLACES, quote, formatCOP, HEAT_ZONES, type Ride } from "@/lib/store";
 import { RideMap } from "./RideMap";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
