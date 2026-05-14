@@ -33,6 +33,13 @@ export interface RideMapProps {
   origin?: Place | null;
   destination?: Place | null;
   className?: string;
+  heatZones?: HeatZone[];
+}
+
+function heatColor(intensity: number) {
+  // 0 → naranja, 1 → rojo intenso
+  const hue = 30 - intensity * 30;
+  return `hsl(${hue}, 95%, 50%)`;
 }
 
 export function RideMap({ origin, destination, className }: RideMapProps) {
