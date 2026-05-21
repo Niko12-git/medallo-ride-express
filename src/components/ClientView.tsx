@@ -100,7 +100,9 @@ export function ClientView() {
     if (!currentRide || currentRide.status !== "Aceptado") {
       setDriverPos(null);
       setDriverNearby(false);
+      setDriverArrived(false);
       nearbyNotified.current = false;
+      arrivedNotified.current = false;
       chosenDriverId.current = null;
       return;
     }
