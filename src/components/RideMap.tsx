@@ -110,6 +110,13 @@ export function RideMap({ origin, destination, className, heatZones, driver, nea
           </Circle>,
         ];
       })}
+      {nearby?.map((n) => (
+        <Marker key={n.id} position={[n.lat, n.lng]} icon={nearbyBikeIcon}>
+          <Tooltip direction="top" offset={[0, -12]} opacity={0.9}>
+            Conductor disponible
+          </Tooltip>
+        </Marker>
+      ))}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
       {driver && (
