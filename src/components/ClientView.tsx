@@ -153,6 +153,23 @@ export function ClientView() {
           description: "Está a menos de 500 metros del punto de encuentro.",
         });
       }
+      if (d < 30 && !arrivedNotified.current) {
+        arrivedNotified.current = true;
+        setDriverArrived(true);
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          try { navigator.vibrate([400, 120, 400]); } catch { /* ignore */ }
+        }
+        notify(
+          "nearby",
+          "¡Tu conductor ha llegado! 🏍️",
+          "Recuerda verificar la placa antes de subirte.",
+          { tag: `ride-${currentRide.id}` },
+        );
+        toast.success("¡Tu conductor ha llegado!", {
+          description: "Recuerda verificar la placa antes de subirte.",
+          duration: 8000,
+        });
+      }
       if (t < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
