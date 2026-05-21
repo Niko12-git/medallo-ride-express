@@ -329,7 +329,7 @@ export function ClientView() {
   return (
     <div className="space-y-3">
       <div className="relative h-56 overflow-hidden rounded-2xl border border-border shadow-card">
-        <RideMap origin={origin} destination={destination} />
+        <RideMap origin={origin} destination={destination} nearby={origin ? nearbyDrivers : undefined} />
       </div>
 
       <div className="grid grid-cols-2 gap-2">
