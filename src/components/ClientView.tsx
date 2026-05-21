@@ -57,16 +57,65 @@ export function ClientView() {
 
   const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
+  // Simula 3 motorizados rondando cerca del origen mientras no haya viaje activo
+  useEffect(() => {
+    if (currentRide || !origin) {
+      if (!currentRide) setNearbyDrivers([]);
+      return;
+    }
+    // Inicializa 3 conductores alrededor (~200-450 m)
+    const seed = () =>
+      Array.from({ length: 3 }, (_, i) => ({
+        id: `nd-${i}-${Math.random().toString(36).slice(2, 7)}`,
+        lat: origin.lat + (Math.random() - 0.5) * 0.008,
+        lng: origin.lng + (Math.random() - 0.5) * 0.008,
+      }));
+    setNearbyDrivers(seed());
+    const iv = setInterval(() => {
+      setNearbyDrivers((prev) =>
+        prev.map((d) => {
+          const nlat = d.lat + (Math.random() - 0.5) * 0.0018;
+          const nlng = d.lng + (Math.random() - 0.5) * 0.0018;
+          // mantenlos dentro de un radio razonable del origen
+          const dl = nlat - origin.lat;
+          const dg = nlng - origin.lng;
+          const off = Math.sqrt(dl * dl + dg * dg);
+          if (off > 0.006) {
+            return {
+              ...d,
+              lat: origin.lat + dl * 0.6,
+              lng: origin.lng + dg * 0.6,
+            };
+          }
+          return { ...d, lat: nlat, lng: nlng };
+        }),
+      );
+    }, 1400);
+    return () => clearInterval(iv);
+  }, [origin, currentRide]);
+
   useEffect(() => {
     if (!currentRide || currentRide.status !== "Aceptado") {
       setDriverPos(null);
       setDriverNearby(false);
       nearbyNotified.current = false;
+      chosenDriverId.current = null;
       return;
     }
     const o = currentRide.origin;
-    // Punto de inicio simulado: ~1.3 km al noroeste del origen
-    const start = { lat: o.lat + 0.011, lng: o.lng - 0.009 };
+    // Si hay motorizados rondando, escoge el más cercano como punto de partida
+    let start = { lat: o.lat + 0.011, lng: o.lng - 0.009 };
+    if (nearbyDrivers.length > 0) {
+      const closest = nearbyDrivers.reduce((best, d) => {
+        const db = distMeters(best, o);
+        const dd = distMeters(d, o);
+        return dd < db ? d : best;
+      }, nearbyDrivers[0]);
+      start = { lat: closest.lat, lng: closest.lng };
+      chosenDriverId.current = closest.id;
+      // Oculta los otros para que solo avance la moto asignada
+      setNearbyDrivers([]);
+    }
     setDriverPos(start);
 
     const totalMs = 7000;
