@@ -92,7 +92,7 @@ export function ClientView() {
           return { ...d, lat: nlat, lng: nlng };
         }),
       );
-    }, 1400);
+    }, 3000);
     return () => clearInterval(iv);
   }, [origin, currentRide]);
 
