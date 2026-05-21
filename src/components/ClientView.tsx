@@ -195,7 +195,7 @@ export function ClientView() {
         `Llegaste a ${currentRide.destination.name}. Total: ${formatCOP(currentRide.price)}.`,
         { tag: `ride-${currentRide.id}` },
       );
-    }, 8000);
+    }, 13000);
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(tEnroute);
