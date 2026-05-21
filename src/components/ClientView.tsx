@@ -52,6 +52,8 @@ export function ClientView() {
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
   const [driverNearby, setDriverNearby] = useState(false);
   const nearbyNotified = useRef(false);
+  const arrivedNotified = useRef(false);
+  const [driverArrived, setDriverArrived] = useState(false);
   const [nearbyDrivers, setNearbyDrivers] = useState<{ id: string; lat: number; lng: number }[]>([]);
   const chosenDriverId = useRef<string | null>(null);
 
@@ -90,7 +92,7 @@ export function ClientView() {
           return { ...d, lat: nlat, lng: nlng };
         }),
       );
-    }, 1400);
+    }, 3000);
     return () => clearInterval(iv);
   }, [origin, currentRide]);
 
@@ -98,7 +100,9 @@ export function ClientView() {
     if (!currentRide || currentRide.status !== "Aceptado") {
       setDriverPos(null);
       setDriverNearby(false);
+      setDriverArrived(false);
       nearbyNotified.current = false;
+      arrivedNotified.current = false;
       chosenDriverId.current = null;
       return;
     }
@@ -149,6 +153,23 @@ export function ClientView() {
           description: "Está a menos de 500 metros del punto de encuentro.",
         });
       }
+      if (d < 30 && !arrivedNotified.current) {
+        arrivedNotified.current = true;
+        setDriverArrived(true);
+        if (typeof navigator !== "undefined" && navigator.vibrate) {
+          try { navigator.vibrate([400, 120, 400]); } catch { /* ignore */ }
+        }
+        notify(
+          "nearby",
+          "¡Tu conductor ha llegado! 🏍️",
+          "Recuerda verificar la placa antes de subirte.",
+          { tag: `ride-${currentRide.id}` },
+        );
+        toast.success("¡Tu conductor ha llegado!", {
+          description: "Recuerda verificar la placa antes de subirte.",
+          duration: 8000,
+        });
+      }
       if (t < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -174,7 +195,7 @@ export function ClientView() {
         `Llegaste a ${currentRide.destination.name}. Total: ${formatCOP(currentRide.price)}.`,
         { tag: `ride-${currentRide.id}` },
       );
-    }, 8000);
+    }, 13000);
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(tEnroute);
@@ -207,19 +228,20 @@ export function ClientView() {
       ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
+    toast("Buscando conductor cercano…", { description: "Contactando motorizados disponibles." });
     setTimeout(() => {
       setCurrentRide({ ...ride, status: "Aceptado" });
       setSearching(false);
-      toast.success("¡Conductor en camino!", {
+      toast.success("¡Conductor asignado!", {
         description: "Carlos M. · Honda CB 160 · Placa MED-23A",
       });
       notify(
         "accepted",
-        "Conductor aceptó tu viaje",
+        "¡Conductor asignado!",
         "Carlos M. · Honda CB 160 · MED-23A. Llega en ~3 min.",
         { tag: `ride-${ride.id}` },
       );
-    }, 2200);
+    }, 4000);
   }
 
   if (currentRide) {
@@ -232,7 +254,30 @@ export function ClientView() {
             driver={driverPos ? { ...driverPos, blink: driverNearby } : null}
           />
           <AnimatePresence>
-            {driverNearby && (
+            {driverArrived ? (
+              <motion.div
+                key="arrived-banner"
+                initial={{ y: -40, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: -40, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 360, damping: 24 }}
+                className="pointer-events-none absolute inset-x-3 top-3 z-[1000]"
+              >
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-neon bg-background/95 p-3 shadow-neon backdrop-blur">
+                  <div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-full bg-neon-gradient text-neon-foreground">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-base font-extrabold leading-tight text-neon">
+                      ¡Tu conductor ha llegado!
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Verifica la placa <span className="font-semibold text-foreground">MED-23A</span> antes de subirte.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : driverNearby ? (
               <motion.div
                 key="nearby-banner"
                 initial={{ y: -40, opacity: 0 }}
@@ -255,7 +300,7 @@ export function ClientView() {
                   </div>
                 </div>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
