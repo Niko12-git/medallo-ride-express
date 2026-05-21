@@ -52,6 +52,8 @@ export function ClientView() {
   const [driverPos, setDriverPos] = useState<{ lat: number; lng: number } | null>(null);
   const [driverNearby, setDriverNearby] = useState(false);
   const nearbyNotified = useRef(false);
+  const [nearbyDrivers, setNearbyDrivers] = useState<{ id: string; lat: number; lng: number }[]>([]);
+  const chosenDriverId = useRef<string | null>(null);
 
   const q = origin && destination ? quote(origin, destination, { serviceType, packageSize, raining }) : null;
 
