@@ -51,6 +51,7 @@ export interface RideMapProps {
   className?: string;
   heatZones?: HeatZone[];
   driver?: { lat: number; lng: number; blink?: boolean } | null;
+  nearby?: { id: string; lat: number; lng: number }[];
 }
 
 function heatColor(intensity: number) {
@@ -59,7 +60,7 @@ function heatColor(intensity: number) {
   return `hsl(${hue}, 95%, 50%)`;
 }
 
-export function RideMap({ origin, destination, className, heatZones, driver }: RideMapProps) {
+export function RideMap({ origin, destination, className, heatZones, driver, nearby }: RideMapProps) {
   const points = useMemo(() => {
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
