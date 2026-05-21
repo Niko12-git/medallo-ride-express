@@ -254,7 +254,30 @@ export function ClientView() {
             driver={driverPos ? { ...driverPos, blink: driverNearby } : null}
           />
           <AnimatePresence>
-            {driverNearby && (
+            {driverArrived ? (
+              <motion.div
+                key="arrived-banner"
+                initial={{ y: -40, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: -40, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 360, damping: 24 }}
+                className="pointer-events-none absolute inset-x-3 top-3 z-[1000]"
+              >
+                <div className="flex items-center gap-3 rounded-2xl border-2 border-neon bg-background/95 p-3 shadow-neon backdrop-blur">
+                  <div className="flex h-11 w-11 shrink-0 animate-pulse items-center justify-center rounded-full bg-neon-gradient text-neon-foreground">
+                    <CheckCircle2 className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-base font-extrabold leading-tight text-neon">
+                      ¡Tu conductor ha llegado!
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      Verifica la placa <span className="font-semibold text-foreground">MED-23A</span> antes de subirte.
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ) : driverNearby ? (
               <motion.div
                 key="nearby-banner"
                 initial={{ y: -40, opacity: 0 }}
@@ -277,7 +300,7 @@ export function ClientView() {
                   </div>
                 </div>
               </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
         <div className="rounded-2xl border border-border bg-card p-4 shadow-card">
