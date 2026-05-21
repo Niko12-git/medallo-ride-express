@@ -228,19 +228,20 @@ export function ClientView() {
       ...(serviceType === "Paquete" ? { packageSize, packageNote: packageNote.trim() || undefined } : {}),
     };
     setCurrentRide(ride);
+    toast("Buscando conductor cercano…", { description: "Contactando motorizados disponibles." });
     setTimeout(() => {
       setCurrentRide({ ...ride, status: "Aceptado" });
       setSearching(false);
-      toast.success("¡Conductor en camino!", {
+      toast.success("¡Conductor asignado!", {
         description: "Carlos M. · Honda CB 160 · Placa MED-23A",
       });
       notify(
         "accepted",
-        "Conductor aceptó tu viaje",
+        "¡Conductor asignado!",
         "Carlos M. · Honda CB 160 · MED-23A. Llega en ~3 min.",
         { tag: `ride-${ride.id}` },
       );
-    }, 2200);
+    }, 4000);
   }
 
   if (currentRide) {
