@@ -26,6 +26,13 @@ function bikeIcon(blink: boolean) {
   });
 }
 
+const nearbyBikeIcon = L.divIcon({
+  className: "",
+  html: `<div class="medallo-nearby" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#0a0a0a;border:2px solid oklch(0.88 0.24 145 / .65);box-shadow:0 0 8px oklch(0.88 0.24 145 / .55);font-size:15px;line-height:1;opacity:.85">🏍️</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
