@@ -128,3 +128,12 @@
 .medallo-blink {
   animation: medallo-blink 0.7s ease-in-out infinite;
 }
+
+@keyframes medallo-nearby-pulse {
+  0%, 100% { transform: scale(1); opacity: .85; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+.medallo-nearby {
+  animation: medallo-nearby-pulse 2.2s ease-in-out infinite;
+  transition: transform .8s ease, opacity .8s ease;
+}

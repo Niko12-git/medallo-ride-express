@@ -26,6 +26,13 @@ function bikeIcon(blink: boolean) {
   });
 }
 
+const nearbyBikeIcon = L.divIcon({
+  className: "",
+  html: `<div class="medallo-nearby" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#0a0a0a;border:2px solid oklch(0.88 0.24 145 / .65);box-shadow:0 0 8px oklch(0.88 0.24 145 / .55);font-size:15px;line-height:1;opacity:.85">🏍️</div>`,
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});
+
 function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap();
   useEffect(() => {
@@ -44,6 +51,7 @@ export interface RideMapProps {
   className?: string;
   heatZones?: HeatZone[];
   driver?: { lat: number; lng: number; blink?: boolean } | null;
+  nearby?: { id: string; lat: number; lng: number }[];
 }
 
 function heatColor(intensity: number) {
@@ -52,7 +60,7 @@ function heatColor(intensity: number) {
   return `hsl(${hue}, 95%, 50%)`;
 }
 
-export function RideMap({ origin, destination, className, heatZones, driver }: RideMapProps) {
+export function RideMap({ origin, destination, className, heatZones, driver, nearby }: RideMapProps) {
   const points = useMemo(() => {
     const p: [number, number][] = [];
     if (origin) p.push([origin.lat, origin.lng]);
@@ -102,6 +110,13 @@ export function RideMap({ origin, destination, className, heatZones, driver }: R
           </Circle>,
         ];
       })}
+      {nearby?.map((n) => (
+        <Marker key={n.id} position={[n.lat, n.lng]} icon={nearbyBikeIcon}>
+          <Tooltip direction="top" offset={[0, -12]} opacity={0.9}>
+            Conductor disponible
+          </Tooltip>
+        </Marker>
+      ))}
       {origin && <Marker position={[origin.lat, origin.lng]} icon={dotIcon} />}
       {destination && <Marker position={[destination.lat, destination.lng]} icon={neonIcon} />}
       {driver && (
